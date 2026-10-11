@@ -141,7 +141,7 @@
 <div id="toast"></div>
 
 <script>
-const S = { init:null, items:[], det:null, stream:null, tmr:null, cv:null, cam:false, ultimo:{c:'',t:0}, bloqueados:[], ocupado:false };
+const S = { init:null, items:[], det:null, pausa:0, stream:null, tmr:null, cv:null, cam:false, ultimo:{c:'',t:0}, bloqueados:[], ocupado:false };
 const $ = id => document.getElementById(id);
 const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const norm = s => String(s==null?'':s).trim().toUpperCase().replace(/\s+/g,'');
@@ -297,8 +297,16 @@ async function detector(){
 function lectura(txt){
   const c = norm(txt), ahora = Date.now();
   if(!c) return;
-  if(c===S.ultimo.c && ahora-S.ultimo.t < 2500) return;
-  S.ultimo = { c, t:ahora }; beep(); agregar(c);
+  // Mientras el mismo código siga a la vista se ignora: solo se vuelve a aceptar
+  // si estuvo fuera de cuadro más de 2,5 s. La ventana se renueva en cada detección.
+  const mismo = c === S.ultimo.c && ahora - S.ultimo.t < 2500;
+  S.ultimo = { c, t:ahora };
+  if(mismo) return;
+  if(ahora < (S.pausa || 0)) return;          // pausa breve tras cada lectura nueva
+  if(S.items.some(i => i.codigo === c)) return; // ya está en la lista: sin sonido ni aviso
+  S.pausa = ahora + 900;
+  beep(); agregar(c);
+  const box = $('videoBox'); box.style.outline = '3px solid #1E7B47'; setTimeout(() => box.style.outline = '', 400);
 }
 async function toggleCam(){
   if(S.cam){ stopCam(); return; }
@@ -419,4 +427,3 @@ function cargarResumen(){
 </script>
 </body>
 </html>
-
