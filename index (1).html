@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#1F4E79">
+<title>Cilindros de gases clínicos</title>
+<script src="https://unpkg.com/@zxing/library@0.20.0/umd/index.min.js"></script>
+<style>
+  :root{--azul:#1F4E79;--azul2:#2E75B6;--fondo:#F3F5F8;--card:#FFFFFF;--txt:#1C2430;--sub:#5B6676;--borde:#D9DEE5;
+        --ok:#1E7B47;--okf:#E3F4EA;--warn:#9A5B00;--warnf:#FFF1D6;--err:#B3261E;--errf:#FBE4E2;--info:#1F4E79;--infof:#E2ECF7}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--fondo);color:var(--txt);font-size:15px}
+  header{background:var(--azul);color:#fff;padding:12px 16px}
+  header h1{margin:0;font-size:17px;font-weight:600}
+  header small{opacity:.8}
+  nav{display:flex;background:var(--azul)}
+  nav button{flex:1;background:none;border:0;color:#cfe0f2;padding:10px;font-size:14px;border-bottom:3px solid transparent}
+  nav button.act{color:#fff;border-bottom-color:#fff;font-weight:600}
+  main{padding:12px 12px 96px;max-width:640px;margin:0 auto}
+  .card{background:var(--card);border:1px solid var(--borde);border-radius:10px;padding:12px;margin-bottom:12px}
+  .card h2{font-size:14px;margin:0 0 10px;color:var(--azul);text-transform:uppercase;letter-spacing:.03em}
+  label{display:block;font-size:13px;color:var(--sub);margin:8px 0 4px}
+  input,select,textarea{width:100%;padding:10px;border:1px solid var(--borde);border-radius:8px;font-size:15px;background:#fff;color:var(--txt)}
+  textarea{min-height:56px;resize:vertical}
+  .fila{display:flex;gap:8px}
+  .fila>*{flex:1}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 14px;border-radius:8px;border:1px solid var(--azul2);
+       background:#fff;color:var(--azul);font-size:15px;font-weight:600;cursor:pointer}
+  .btn.prim{background:var(--azul);color:#fff;border-color:var(--azul)}
+  .btn.peligro{border-color:var(--warn);color:var(--warn)}
+  .btn:disabled{opacity:.5}
+  #videoBox{position:relative;margin-top:10px;border-radius:8px;overflow:hidden;background:#000}
+  #video{width:100%;display:block;max-height:280px;object-fit:cover}
+  #mira{position:absolute;left:8%;right:8%;top:42%;height:16%;border:2px solid #4CC2FF;border-radius:6px;pointer-events:none}
+  ul.lista{list-style:none;margin:0;padding:0}
+  ul.lista li{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--borde)}
+  ul.lista li:last-child{border-bottom:0}
+  .cod{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:600}
+  .det{font-size:12px;color:var(--sub)}
+  .grow{flex:1;min-width:0}
+  .badge{font-size:11px;padding:3px 7px;border-radius:999px;white-space:nowrap}
+  .b-ok{background:var(--okf);color:var(--ok)}.b-warn{background:var(--warnf);color:var(--warn)}
+  .b-err{background:var(--errf);color:var(--err)}.b-info{background:var(--infof);color:var(--info)}
+  .x{border:0;background:none;color:var(--sub);font-size:18px;padding:4px 8px}
+  .vacio{color:var(--sub);font-size:13px;padding:6px 0}
+  #barra{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--borde);padding:10px 12px}
+  #barra .btn{width:100%;max-width:640px;display:flex;margin:0 auto}
+  #toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);background:#222;color:#fff;padding:10px 14px;border-radius:8px;
+         font-size:14px;max-width:90%;display:none;z-index:9}
+  #toast.err{background:var(--err)}#toast.ok{background:var(--ok)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:6px 4px;border-bottom:1px solid var(--borde);text-align:right}
+  th:first-child,td:first-child{text-align:left}
+  th{color:var(--sub);font-weight:600;font-size:11px}
+  .alerta{padding:8px 10px;border-radius:8px;margin-bottom:6px;font-size:13px}
+  .al-alta{background:var(--errf);color:var(--err)}.al-media{background:var(--warnf);color:var(--warn)}
+  .oculto{display:none!important}
+  .res{font-size:13px;margin-top:8px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Cilindros de gases clínicos</h1>
+  <small>Hospital de Villarrica · Control de entradas y salidas · <a href="#" onclick="mostrarCfg();return false" style="color:#cfe0f2">Conexión</a></small>
+</header>
+<nav>
+  <button id="tabReg" class="act" onclick="tab('reg')">Registrar</button>
+  <button id="tabRes" onclick="tab('res')">Resumen</button>
+</nav>
+
+<main>
+  <section id="vCfg" class="oculto">
+    <div class="card">
+      <h2>Configuración inicial</h2>
+      <div class="det">Se hace una sola vez por celular. Pida la dirección del servidor y la clave al administrador.</div>
+      <label for="cfgUrl">Dirección del servidor (termina en /exec)</label>
+      <input id="cfgUrl" placeholder="https://script.google.com/macros/s/.../exec" autocapitalize="off" autocorrect="off">
+      <label for="cfgKey">Clave de acceso</label>
+      <input id="cfgKey" autocapitalize="characters" autocorrect="off">
+      <button class="btn prim" style="width:100%;margin-top:12px" onclick="guardarCfg()">Guardar y conectar</button>
+    </div>
+  </section>
+  <section id="vReg">
+    <div class="card">
+      <h2>Movimiento</h2>
+      <label for="resp">Responsable</label>
+      <input id="resp" placeholder="Nombre y cargo" autocomplete="name">
+      <label for="mov">Tipo de movimiento</label>
+      <select id="mov" onchange="onMov()"></select>
+      <div id="fProv"><label for="prov">Proveedor de origen</label><select id="prov"></select></div>
+      <label for="dest">Destino</label>
+      <select id="dest"></select>
+      <div id="fDoc"><label for="doc" id="lDoc">N° guía de despacho / documento</label><input id="doc" inputmode="numeric"></div>
+      <div id="fGas"><label for="gas">Gas para cilindros no registrados (alta automática)</label><select id="gas" onchange="render()"></select></div>
+      <div id="fEst"><label for="est">Estado resultante</label><select id="est"></select></div>
+      <label for="obs">Observaciones</label>
+      <textarea id="obs" placeholder="Obligatorio si se fuerza un movimiento"></textarea>
+    </div>
+
+    <div class="card">
+      <h2>Lectura de cilindros</h2>
+      <div class="fila">
+        <button class="btn prim" id="btnCam" onclick="toggleCam()">Cámara</button>
+        <button class="btn" onclick="document.getElementById('foto').click()">Foto</button>
+      </div>
+      <input type="file" id="foto" accept="image/*" capture="environment" class="oculto" onchange="leerFoto(this)">
+      <div id="videoBox" class="oculto"><video id="video" playsinline muted></video><div id="mira"></div></div>
+      <label for="man">Ingreso manual o lector Bluetooth</label>
+      <div class="fila">
+        <input id="man" placeholder="Código y Enter" autocapitalize="characters" style="flex:3">
+        <button class="btn" onclick="agregarManual()">Agregar</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Cilindros leídos <span id="cnt"></span></h2>
+      <ul class="lista" id="lista"></ul>
+      <div id="res" class="res"></div>
+      <button id="btnForzar" class="btn peligro oculto" style="width:100%;margin-top:8px" onclick="registrar(true)">Forzar bloqueados</button>
+    </div>
+  </section>
+
+  <section id="vRes" class="oculto">
+    <div class="card">
+      <div class="fila" style="align-items:center">
+        <h2 style="margin:0">Estado actual</h2>
+        <button class="btn" style="flex:0" onclick="cargarResumen()">Actualizar</button>
+      </div>
+      <div class="det" id="resAct"></div>
+    </div>
+    <div class="card"><h2>Alertas</h2><div id="resAlertas"></div></div>
+    <div class="card"><h2>Por gas</h2><div id="resGas"></div></div>
+    <div class="card"><h2>En uso por servicio</h2><div id="resUbic"></div></div>
+  </section>
+</main>
+
+<div id="barra"><button class="btn prim" id="btnReg" onclick="registrar(false)">Registrar movimiento</button></div>
+<div id="toast"></div>
+
+<script>
+const S = { init:null, items:[], reader:null, cam:false, ultimo:{c:'',t:0}, bloqueados:[], ocupado:false };
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm = s => String(s==null?'':s).trim().toUpperCase().replace(/\s+/g,'');
+
+function store(k, v){ try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k, v); }catch(e){ return null; } }
+
+/* ---------- Conexión con el servidor (Apps Script) ---------- */
+(function(){
+  // Enlace de configuración: ...index.html?api=<url /exec>&k=<clave>
+  try{
+    const q = new URLSearchParams(location.search);
+    if(q.get('api')) store('apiUrl', q.get('api'));
+    if(q.get('k')) store('apiKey', q.get('k'));
+    if(q.get('api') || q.get('k')) history.replaceState(null, '', location.pathname);
+  }catch(e){}
+})();
+function cfg(){ return { url: store('apiUrl') || '', key: store('apiKey') || '' }; }
+function gs(fn, ...args){
+  const c = cfg();
+  if(!c.url || !c.key) return Promise.reject(new Error('Falta configurar la conexión.'));
+  return fetch(c.url, { method:'POST', redirect:'follow',
+      headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+      body: JSON.stringify({ token:c.key, fn, args }) })
+    .then(r => { if(!r.ok) throw new Error('Servidor no disponible ('+r.status+')'); return r.json(); })
+    .then(j => { if(!j.ok){ if(/clave/i.test(j.error)) mostrarCfg(); throw new Error(j.error); } return j.data; });
+}
+function mostrarCfg(){
+  const c = cfg(); $('cfgUrl').value = c.url; $('cfgKey').value = c.key;
+  $('vCfg').classList.remove('oculto'); $('vReg').classList.add('oculto'); $('vRes').classList.add('oculto'); $('barra').classList.add('oculto');
+}
+function guardarCfg(){
+  const u = $('cfgUrl').value.trim(), k = $('cfgKey').value.trim().toUpperCase();
+  if(!/^https:\/\/script\.google\.com\/.+\/exec$/.test(u)){ toast('La dirección debe terminar en /exec', 'err'); return; }
+  if(!k){ toast('Ingrese la clave', 'err'); return; }
+  store('apiUrl', u); store('apiKey', k);
+  $('vCfg').classList.add('oculto'); $('vReg').classList.remove('oculto'); $('barra').classList.remove('oculto');
+  iniciar();
+}
+
+let toastT;
+function toast(msg, tipo){
+  const t=$('toast'); t.textContent=msg; t.className=tipo||''; t.style.display='block';
+  clearTimeout(toastT); toastT=setTimeout(()=>t.style.display='none', 3500);
+}
+function beep(){
+  try{ navigator.vibrate && navigator.vibrate(80); }catch(e){}
+  try{
+    const ctx = beep.ctx || (beep.ctx = new (window.AudioContext||window.webkitAudioContext)());
+    const o=ctx.createOscillator(), g=ctx.createGain(); o.frequency.value=1200; g.gain.value=.08;
+    o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime+.09);
+  }catch(e){}
+}
+
+function tab(v){
+  $('vReg').classList.toggle('oculto', v!=='reg'); $('vRes').classList.toggle('oculto', v!=='res');
+  $('tabReg').classList.toggle('act', v==='reg'); $('tabRes').classList.toggle('act', v==='res');
+  $('barra').classList.toggle('oculto', v!=='reg');
+  if(v==='res'){ stopCam(); cargarResumen(); }
+}
+
+/* ---------- Inicio ---------- */
+function opciones(sel, lista, vacio){
+  sel.innerHTML = (vacio!==undefined ? `<option value="">${esc(vacio)}</option>` : '') +
+    lista.map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join('');
+}
+function iniciar(){
+gs('getInit').then(d => {
+  S.init = d;
+  $('mov').innerHTML = d.movimientos.map(m => `<option value="${m.clave}">${esc(m.nombre)}</option>`).join('');
+  opciones($('prov'), d.ubicaciones.filter(u=>u.tipo==='PROVEEDOR').map(u=>u.nombre));
+  opciones($('gas'), d.gases, '— No dar de alta —');
+  opciones($('est'), d.estados);
+  $('resp').value = store('resp') || '';
+  const ult = store('mov'); if(ult && d.movimientos.some(m=>m.clave===ult)) $('mov').value = ult;
+  onMov();
+}).catch(e => toast('Error al cargar: '+(e.message||e), 'err'));
+}
+if(cfg().url && cfg().key) iniciar(); else mostrarCfg();
+
+$('resp').addEventListener('change', () => store('resp', $('resp').value.trim()));
+$('man').addEventListener('keydown', e => { if(e.key==='Enter'){ e.preventDefault(); agregarManual(); } });
+
+function movDef(){ return S.init ? S.init.movimientos.find(m => m.clave===$('mov').value) : null; }
+
+function onMov(){
+  const m = movDef(); if(!m) return;
+  store('mov', m.clave);
+  $('fProv').classList.toggle('oculto', m.clave!=='RECEPCION');
+  $('fGas').classList.toggle('oculto', !(m.clave==='RECEPCION' || m.clave==='AJUSTE'));
+  $('fEst').classList.toggle('oculto', m.clave!=='AJUSTE');
+  $('lDoc').textContent = 'N° guía de despacho / documento' + (m.doc ? ' (obligatorio)' : ' (opcional)');
+  const dest = S.init.ubicaciones.filter(u => m.destino==='CUALQUIERA' || u.tipo===m.destino).map(u=>u.nombre);
+  opciones($('dest'), dest);
+  S.bloqueados = []; $('btnForzar').classList.add('oculto');
+  render();
+}
+
+/* ---------- Lista de cilindros ---------- */
+function agregarManual(){ const v=$('man').value; $('man').value=''; agregar(v); $('man').focus(); }
+
+function agregar(raw){
+  const c = norm(raw); if(!c) return;
+  if(S.items.some(i => i.codigo===c)){ toast(c+' ya está en la lista'); return; }
+  const it = { codigo:c, info:null, resultado:null };
+  S.items.unshift(it); render();
+  gs('getCilindro', c).then(info => { it.info = info; render(); })
+    .catch(e => { it.info = { encontrado:false, error:(e.message||String(e)) }; render(); });
+}
+function quitar(c){ S.items = S.items.filter(i => i.codigo!==c); S.bloqueados = S.bloqueados.filter(x=>x!==c); render(); }
+
+function compat(it){
+  const m = movDef();
+  if(it.resultado) return it.resultado.bloqueado ? ['b-warn','Bloqueado'] : ['b-err','Error'];
+  if(!it.info) return ['b-info','Consultando…'];
+  if(it.info.error) return ['b-err','Error de consulta'];
+  if(!it.info.encontrado){
+    return ((m.clave==='RECEPCION'||m.clave==='AJUSTE') && $('gas').value) ? ['b-info','Nuevo: alta automática'] : ['b-err','No registrado'];
+  }
+  if(!it.info.activo) return ['b-warn','Inactivo'];
+  if(m.desde && m.desde.indexOf(it.info.estado) < 0) return ['b-warn', it.info.estado+' · no compatible'];
+  return ['b-ok', it.info.estado];
+}
+
+function render(){
+  if(!S.init) return;
+  $('cnt').textContent = S.items.length ? `(${S.items.length})` : '';
+  $('lista').innerHTML = S.items.length ? S.items.map(it => {
+    const [cls, txt] = compat(it);
+    const i = it.info || {};
+    const det = it.resultado ? esc(it.resultado.motivo)
+      : i.encontrado ? esc(i.gas + (i.ubicacion ? ' · '+i.ubicacion : '') + (i.fechaUltimo ? ' · '+i.fechaUltimo : '')) : '';
+    return `<li><div class="grow"><div class="cod">${esc(it.codigo)}</div><div class="det">${det}</div></div>
+            <span class="badge ${cls}">${esc(txt)}</span>
+            <button class="x" aria-label="Quitar" data-c="${esc(it.codigo)}" onclick="quitar(this.dataset.c)">✕</button></li>`;
+  }).join('') : '<div class="vacio">Escanee o ingrese los códigos de los cilindros.</div>';
+  $('btnReg').textContent = S.items.length ? `Registrar movimiento (${S.items.length})` : 'Registrar movimiento';
+  $('btnReg').disabled = !S.items.length || S.ocupado;
+}
+
+/* ---------- Cámara (ZXing) ---------- */
+function lector(){
+  if(S.reader) return S.reader;
+  const F = ZXing.BarcodeFormat, hints = new Map();
+  hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS,
+    [F.CODE_128, F.CODE_39, F.CODE_93, F.EAN_13, F.EAN_8, F.ITF, F.CODABAR, F.UPC_A, F.QR_CODE, F.DATA_MATRIX]);
+  hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+  S.reader = new ZXing.BrowserMultiFormatReader(hints, 250);
+  return S.reader;
+}
+function lectura(txt){
+  const c = norm(txt), ahora = Date.now();
+  if(c===S.ultimo.c && ahora-S.ultimo.t < 2500) return;
+  S.ultimo = { c, t:ahora }; beep(); agregar(c);
+}
+async function toggleCam(){
+  if(S.cam){ stopCam(); return; }
+  if(typeof ZXing==='undefined'){ toast('No se cargó el lector. Verifique conexión.', 'err'); return; }
+  try{
+    $('videoBox').classList.remove('oculto'); S.cam = true; $('btnCam').textContent = 'Detener cámara';
+    await lector().decodeFromConstraints({ video:{ facingMode:{ ideal:'environment' } } }, $('video'),
+      (res) => { if(res) lectura(res.getText()); });
+  }catch(e){
+    stopCam();
+    const n = e && e.name;
+    toast(n==='NotAllowedError' ? 'Permiso de cámara denegado: habilítelo en los ajustes del sitio.'
+        : n==='NotFoundError' ? 'No se encontró una cámara en el equipo.'
+        : n==='NotReadableError' ? 'La cámara está en uso por otra aplicación.'
+        : 'No se pudo abrir la cámara. Use "Foto" o el ingreso manual.', 'err');
+  }
+}
+function stopCam(){
+  try{ S.reader && S.reader.reset(); }catch(e){}
+  S.cam = false; $('videoBox').classList.add('oculto'); $('btnCam').textContent = 'Cámara';
+}
+function leerFoto(input){
+  const f = input.files && input.files[0]; input.value=''; if(!f) return;
+  if(typeof ZXing==='undefined'){ toast('No se cargó el lector. Verifique conexión.', 'err'); return; }
+  const url = URL.createObjectURL(f), img = new Image();
+  img.onload = () => {
+    const max = 1600, k = Math.min(1, max / Math.max(img.width, img.height));
+    const cv = document.createElement('canvas'); cv.width = Math.round(img.width*k); cv.height = Math.round(img.height*k);
+    cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+    URL.revokeObjectURL(url);
+    lector().decodeFromImageUrl(cv.toDataURL('image/jpeg', .92))
+      .then(r => lectura(r.getText()))
+      .catch(() => toast('No se detectó un código. Acerque la cámara y evite reflejos.', 'err'));
+  };
+  img.onerror = () => { URL.revokeObjectURL(url); toast('No se pudo abrir la imagen.', 'err'); };
+  img.src = url;
+}
+
+/* ---------- Registro ---------- */
+async function registrar(forzar){
+  const m = movDef();
+  const resp = $('resp').value.trim();
+  if(!resp){ toast('Indique el responsable.', 'err'); $('resp').focus(); return; }
+  if(m.doc && !$('doc').value.trim()){ toast('Ingrese el N° de guía o documento.', 'err'); $('doc').focus(); return; }
+  if(forzar && !$('obs').value.trim()){ toast('Para forzar, indique el motivo en Observaciones.', 'err'); $('obs').focus(); return; }
+  const codigos = forzar ? S.bloqueados.slice() : S.items.map(i => i.codigo);
+  if(!codigos.length) return;
+  store('resp', resp);
+
+  S.ocupado = true; render(); $('btnForzar').disabled = true; stopCam();
+  try{
+    const r = await gs('registrarMovimientos', {
+      tipo:m.clave, codigos, destino:$('dest').value, proveedor:$('prov').value, documento:$('doc').value,
+      responsable:resp, observaciones:$('obs').value, gasNuevo:$('gas').value, estadoAjuste:$('est').value, forzar:!!forzar
+    });
+    const okSet = new Set(r.resultados.filter(x=>x.ok).map(x=>x.codigo));
+    r.resultados.forEach(x => { const it = S.items.find(i=>i.codigo===x.codigo); if(it && !x.ok) it.resultado = x; });
+    S.items = S.items.filter(i => !okSet.has(i.codigo));
+    S.bloqueados = r.resultados.filter(x => x.bloqueado).map(x => x.codigo);
+    $('btnForzar').classList.toggle('oculto', !S.bloqueados.length);
+    $('btnForzar').textContent = `Forzar ${S.bloqueados.length} bloqueado(s)`;
+    const fallidos = r.resultados.length - r.registrados;
+    $('res').innerHTML = `<b>${r.registrados}</b> registrado(s)` + (fallidos ? ` · <b>${fallidos}</b> pendiente(s): revise la lista.` : '.');
+    toast(`${r.registrados} cilindro(s) registrados: ${m.nombre}`, r.registrados ? 'ok' : 'err');
+    if(r.registrados && !S.items.length){ $('obs').value=''; }
+  }catch(e){
+    toast(e.message || String(e), 'err');
+  }finally{
+    S.ocupado = false; $('btnForzar').disabled = false; render();
+  }
+}
+
+/* ---------- Resumen ---------- */
+function cargarResumen(){
+  $('resAct').textContent = 'Cargando…';
+  gs('getResumen').then(r => {
+    $('resAct').textContent = 'Actualizado: ' + r.actualizado;
+    $('resAlertas').innerHTML = r.alertas.length
+      ? r.alertas.map(a => `<div class="alerta al-${a.nivel}"><b>${esc(a.tipo)}:</b> ${esc(a.texto)}</div>`).join('')
+      : '<div class="vacio">Sin alertas.</div>';
+    const cols = [['Lleno en bodega','Llenos'],['En uso','En uso'],['Vacío en bodega','Vacíos'],['Fuera de servicio','Fuera serv.'],['Devuelto a proveedor','Devueltos']];
+    $('resGas').innerHTML = r.gases.length ? `<table><tr><th>Gas</th>${cols.map(c=>`<th>${c[1]}</th>`).join('')}</tr>` +
+      r.gases.map(g => `<tr><td>${esc(g)}</td>${cols.map(c=>`<td>${r.porGas[g][c[0]]||0}</td>`).join('')}</tr>`).join('') + '</table>'
+      : '<div class="vacio">Aún no hay cilindros registrados.</div>';
+    const ubs = Object.keys(r.porUbic).sort();
+    $('resUbic').innerHTML = ubs.length ? '<table><tr><th>Servicio</th><th>Gas</th><th>Cant.</th></tr>' +
+      ubs.map(u => Object.keys(r.porUbic[u]).sort().map(g => `<tr><td>${esc(u)}</td><td style="text-align:left">${esc(g)}</td><td>${r.porUbic[u][g]}</td></tr>`).join('')).join('') + '</table>'
+      : '<div class="vacio">Sin cilindros en uso.</div>';
+  }).catch(e => { $('resAct').textContent = ''; toast(e.message||String(e), 'err'); });
+}
+</script>
+</body>
+</html>
