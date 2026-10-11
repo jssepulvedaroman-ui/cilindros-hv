@@ -155,7 +155,8 @@ function store(k, v){ try{ if(v===undefined) return localStorage.getItem(k); loc
     const q = new URLSearchParams(location.search);
     if(q.get('api')) store('apiUrl', q.get('api'));
     if(q.get('k')) store('apiKey', q.get('k'));
-    if(q.get('api') || q.get('k')) history.replaceState(null, '', location.pathname);
+    // La configuración se mantiene en la dirección: así el acceso directo de la
+    // pantalla de inicio la trae siempre, aunque el navegador borre sus datos.
   }catch(e){}
 })();
 function cfg(){ return { url: store('apiUrl') || '', key: store('apiKey') || '' }; }
@@ -177,6 +178,7 @@ function guardarCfg(){
   if(!/^https:\/\/script\.google\.com\/.+\/exec$/.test(u)){ toast('La dirección debe terminar en /exec', 'err'); return; }
   if(!k){ toast('Ingrese la clave', 'err'); return; }
   store('apiUrl', u); store('apiKey', k);
+  try{ history.replaceState(null, '', location.pathname + '?api=' + encodeURIComponent(u) + '&k=' + encodeURIComponent(k)); }catch(e){}
   $('vCfg').classList.add('oculto'); $('vReg').classList.remove('oculto'); $('barra').classList.remove('oculto');
   iniciar();
 }
