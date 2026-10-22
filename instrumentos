@@ -1,1 +1,731 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1F4E79">
+<title>Instrumentos de medición · HV</title>
+<style>
+:root{--az:#1F4E79;--az2:#2E6DA4;--azc:#E8F0F8;--tx:#1d2733;--mu:#5d6b7a;--bd:#d5dde6;--bg:#f4f6f9;--ok:#1e7b45;--okc:#e3f4ea;--wa:#9a6300;--wac:#fff3d6;--er:#b3261e;--erc:#fbe6e4;--inf:#1f5f99;--infc:#e3eefa}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 -apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+header{background:var(--az);color:#fff;padding:12px 16px calc(12px);position:sticky;top:0;z-index:20}
+header h1{font-size:17px;margin:0;font-weight:700;letter-spacing:.2px}
+header .sub{font-size:12px;opacity:.85}
+header .user{margin-top:6px;font-size:12px;display:flex;gap:6px;align-items:center}
+header .user button{background:rgba(255,255,255,.15);border:0;color:#fff;border-radius:12px;padding:3px 10px;font-size:12px}
+main{padding:14px 16px 96px;max-width:720px;margin:0 auto}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--bd);display:flex;z-index:20;padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;border:0;background:none;padding:9px 2px 8px;font-size:11.5px;color:var(--mu);display:flex;flex-direction:column;align-items:center;gap:2px}
+nav button svg{width:22px;height:22px}
+nav button.on{color:var(--az);font-weight:700}
+nav .badge{background:var(--er);color:#fff;border-radius:9px;font-size:10px;padding:0 5px;margin-left:2px}
+.card{background:#fff;border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:12px}
+.card h2{font-size:15px;margin:0 0 10px;color:var(--az)}
+label{display:block;font-size:13px;font-weight:600;margin:12px 0 5px}
+label .opt{font-weight:400;color:var(--mu)}
+input,select,textarea{width:100%;font:inherit;padding:10px 11px;border:1px solid var(--bd);border-radius:9px;background:#fff;color:var(--tx)}
+textarea{min-height:64px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--az2);outline-offset:-1px;border-color:var(--az2)}
+.row{display:flex;gap:8px}
+.row>*{flex:1}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:10px;padding:12px 14px;font:inherit;font-weight:700;background:var(--az);color:#fff;width:100%;cursor:pointer}
+.btn.sec{background:var(--azc);color:var(--az)}
+.btn.sm{padding:7px 11px;font-size:13px;width:auto;border-radius:8px}
+.btn:disabled{opacity:.5}
+.chip{display:inline-block;font-size:11.5px;font-weight:700;border-radius:20px;padding:2px 9px;white-space:nowrap}
+.c-ok{background:var(--okc);color:var(--ok)}.c-wa{background:var(--wac);color:var(--wa)}.c-er{background:var(--erc);color:var(--er)}.c-inf{background:var(--infc);color:var(--inf)}.c-mu{background:#eef1f4;color:var(--mu)}
+.alert{border-radius:10px;padding:10px 12px;font-size:13.5px;margin:10px 0}
+.alert.er{background:var(--erc);color:var(--er)}.alert.wa{background:var(--wac);color:var(--wa)}.alert.ok{background:var(--okc);color:var(--ok)}.alert.inf{background:var(--infc);color:var(--inf)}
+.ficha{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:13.5px;margin-top:8px}
+.ficha dt{color:var(--mu)}.ficha dd{margin:0;font-weight:600}
+.checks label{display:flex;gap:10px;align-items:flex-start;font-weight:400;margin:8px 0;font-size:14px}
+.checks input{width:20px;height:20px;flex:none;margin-top:1px;accent-color:var(--az)}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chips label{margin:0;font-weight:500;font-size:13px;border:1px solid var(--bd);border-radius:20px;padding:6px 11px;display:flex;align-items:center;gap:6px;background:#fff}
+.chips input{width:16px;height:16px;accent-color:var(--az)}
+.decl{font-size:12.5px;color:var(--mu);background:var(--bg);border-radius:9px;padding:10px;margin-top:12px;text-align:justify}
+.pad{position:relative;border:1.5px dashed var(--az2);border-radius:10px;background:#fff;height:170px;touch-action:none;margin-top:6px}
+.pad canvas{width:100%;height:100%;display:block;border-radius:10px}
+.pad .ph{position:absolute;inset:auto 0 10px 0;text-align:center;font-size:12px;color:var(--mu);pointer-events:none}
+.pad .line{position:absolute;left:18px;right:18px;bottom:34px;border-top:1px solid #c9d2dc;pointer-events:none}
+.padbar{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--mu);margin-top:4px}
+.link{background:none;border:0;color:var(--az2);font:inherit;font-size:13px;font-weight:600;padding:4px 0;cursor:pointer}
+.item{display:flex;gap:10px;justify-content:space-between;align-items:flex-start;padding:11px 0;border-top:1px solid #edf0f3}
+.item:first-child{border-top:0;padding-top:2px}
+.item .t{font-weight:700;font-size:14px}
+.item .m{font-size:12.5px;color:var(--mu)}
+.item .acts{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.muted{color:var(--mu);font-size:13px}
+.hidden{display:none!important}
+.scanbox{position:fixed;inset:0;background:#000;z-index:50;display:flex;flex-direction:column}
+.scanbox video{flex:1;width:100%;object-fit:cover;min-height:0}
+.scanbox .frame{position:absolute;top:50%;left:50%;width:min(70vw,300px);height:min(70vw,300px);transform:translate(-50%,-62%);border:3px solid rgba(255,255,255,.85);border-radius:18px;box-shadow:0 0 0 2000px rgba(0,0,0,.35)}
+.scanbox .bar{background:#111;padding:12px 16px calc(12px + env(safe-area-inset-bottom));display:flex;gap:8px}
+.scanbox .bar input{background:#222;color:#fff;border-color:#333}
+.scanbox .msg{position:absolute;top:16px;left:0;right:0;text-align:center;color:#fff;font-size:14px;text-shadow:0 1px 3px #000}
+.toast{position:fixed;left:16px;right:16px;bottom:84px;margin:auto;max-width:520px;background:#1d2733;color:#fff;border-radius:10px;padding:12px 14px;z-index:60;font-size:14px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.toast.er{background:var(--er)}
+.loading{position:fixed;inset:0;background:rgba(255,255,255,.6);z-index:70;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--az)}
+/* Acta y etiquetas */
+.sheet{position:fixed;inset:0;background:#fff;z-index:80;overflow:auto}
+.sheet .tools{position:sticky;top:0;background:var(--az);display:flex;gap:8px;padding:10px 16px;justify-content:flex-end}
+.sheet .tools .btn{width:auto;padding:8px 14px}
+.doc{-webkit-print-color-adjust:exact;print-color-adjust:exact;max-width:780px;margin:0 auto;padding:22px 26px;font-family:Arial,Helvetica,sans-serif;font-size:11.5px;color:#000}
+.doc .h1{text-align:center;color:#1F4E79;font-weight:700;font-size:12.5px}
+.doc .h2{text-align:center;color:#404040;font-size:11px}
+.doc .tt{background:#1F4E79;color:#fff;text-align:center;font-weight:700;font-size:14px;padding:6px;margin-top:6px}
+.doc .cod{text-align:center;color:#595959;font-style:italic;font-size:9.5px;margin:3px 0 10px}
+.doc .sec{background:#1F4E79;color:#fff;font-weight:700;padding:3px 6px;margin-top:12px}
+.doc table{width:100%;border-collapse:collapse}
+.doc td{border:1px solid #808080;padding:4px 6px;vertical-align:top}
+.doc td.l{background:#F2F2F2;font-weight:700;width:22%}
+.doc .decl2{border:1px solid #808080;padding:6px 8px;margin-top:10px;text-align:justify;font-size:10.5px}
+.doc .firmas{display:flex;gap:30px;margin-top:14px}
+.doc .firmas>div{flex:1;text-align:center}
+.doc .firmas img{height:70px;max-width:100%;object-fit:contain;display:block;margin:0 auto}
+.doc .firmas .sp{height:70px}
+.doc .firmas .ln{border-top:1px solid #000;margin:2px 10px 3px}
+.doc .pie{color:#595959;font-style:italic;font-size:9px;margin-top:14px}
+.labels{-webkit-print-color-adjust:exact;print-color-adjust:exact;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:780px;margin:0 auto;padding:20px}
+.lbl{border:1px dashed #999;border-radius:6px;padding:8px;text-align:center;font-family:Arial,sans-serif;break-inside:avoid}
+.lbl .qr{display:flex;justify-content:center;margin:4px 0}
+.lbl b{font-size:16px;display:block}
+.lbl span{font-size:9.5px;color:#333;display:block}
+@media print{
+  body>*:not(.sheet){display:none!important}
+  .sheet{position:static;overflow:visible}
+  .sheet .tools{display:none}
+  .doc{padding:0}
+  @page{size:letter;margin:14mm}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Instrumentos de medición</h1>
+  <div class="sub">Hospital de Villarrica · Operaciones e Infraestructura · Área Eléctrica</div>
+  <div class="user hidden" id="userBar"><span id="userName"></span><button id="btnUser">Cambiar</button></div>
+</header>
+
+<main>
+  <!-- Configuración -->
+  <section id="vConfig" class="hidden">
+    <div class="card">
+      <h2>Configuración</h2>
+      <p class="muted">Abra la app desde el enlace entregado por la jefatura (incluye la dirección del servidor y la clave). También puede ingresarlos a mano.</p>
+      <label>URL del servidor (Apps Script /exec)</label>
+      <input id="cfgApi" placeholder="https://script.google.com/macros/s/…/exec">
+      <label>Clave de acceso</label>
+      <input id="cfgK" type="password">
+      <div style="margin-top:14px"><button class="btn" id="btnCfg">Guardar y conectar</button></div>
+    </div>
+  </section>
+
+  <!-- Usuario -->
+  <section id="vUser" class="hidden">
+    <div class="card">
+      <h2>¿Quién usa este equipo?</h2>
+      <p class="muted">Seleccione su nombre. Solo los ingenieros habilitados en la hoja Personal pueden entregar y recibir instrumentos.</p>
+      <select id="selUser"></select>
+      <div style="margin-top:14px"><button class="btn" id="btnSetUser">Continuar</button></div>
+    </div>
+  </section>
+
+  <!-- Entregar -->
+  <section id="vEntregar" class="hidden">
+    <div id="entOk" class="card hidden"></div>
+    <form id="fEnt" autocomplete="off" novalidate>
+      <div class="card">
+        <h2>1 · Instrumento</h2>
+        <div class="row">
+          <button type="button" class="btn sec" id="entScan">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 12h10"/></svg>
+            Escanear etiqueta
+          </button>
+        </div>
+        <label>o seleccione de la lista</label>
+        <select id="entIns"></select>
+        <div id="entFicha"></div>
+      </div>
+
+      <div class="card" id="entCuerpo">
+        <h2>2 · Asignación</h2>
+        <label>Técnico receptor</label>
+        <select id="entTec" required></select>
+        <div class="row">
+          <div><label>OT / N° tarea <span class="opt">(opcional)</span></label><input id="entOt" placeholder="OT-0000"></div>
+          <div><label>Devolución comprometida</label><input id="entComp" type="datetime-local" required></div>
+        </div>
+        <label>Trabajo asignado y lugar</label>
+        <textarea id="entTrab" placeholder="Ej.: Medición de consumo tablero TDA pabellón quirúrgico" required></textarea>
+
+        <label>Accesorios entregados</label>
+        <div class="chips" id="entAcc"></div>
+        <input id="entAccOtro" placeholder="Otros accesorios (separados por coma)" style="margin-top:8px">
+
+        <h2 style="margin-top:18px">3 · Verificación funcional previa</h2>
+        <div class="checks" id="entVerif"></div>
+
+        <div class="row">
+          <div><label>Estado a la entrega</label>
+            <select id="entEst"><option>Operativo</option><option>Operativo con observación</option></select></div>
+        </div>
+        <label>Observación <span class="opt" id="entObsHint">(opcional)</span></label>
+        <textarea id="entObs" placeholder="Observación del estado, motivo de excepción o justificación de plazo"></textarea>
+
+        <h2 style="margin-top:18px">4 · Firma del técnico receptor</h2>
+        <div class="decl">Declaro recibir el instrumento individualizado en las condiciones indicadas, habiendo verificado su funcionamiento y el estado de puntas, cables y accesorios. Me comprometo a: (1) utilizarlo exclusivamente en el trabajo asignado; (2) no exceder la categoría de medición ni los rangos nominales del instrumento (IEC 61010-1); (3) verificar ausencia de tensión con comprobador probado antes y después de cada uso; (4) usar el EPP correspondiente al nivel de riesgo eléctrico; (5) informar de inmediato cualquier falla, daño o pérdida al ingeniero responsable; y (6) devolverlo en la fecha comprometida o al término del trabajo, lo que ocurra primero.</div>
+        <div class="pad" id="padEnt"><div class="line"></div><canvas></canvas><div class="ph">Firme aquí con el dedo</div></div>
+        <div class="padbar"><span id="padEntName"></span><button type="button" class="link" data-clear="padEnt">Borrar firma</button></div>
+
+        <div id="entErr"></div>
+        <div style="margin-top:14px"><button class="btn" id="entBtn" type="submit">Registrar entrega</button></div>
+      </div>
+    </form>
+  </section>
+
+  <!-- Devolver -->
+  <section id="vDevolver" class="hidden">
+    <div id="devOk" class="card hidden"></div>
+    <div class="card" id="devSel">
+      <h2>Instrumento a devolver</h2>
+      <button type="button" class="btn sec" id="devScan">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 12h10"/></svg>
+        Escanear etiqueta
+      </button>
+      <label>o seleccione el préstamo</label>
+      <select id="devPre"></select>
+    </div>
+    <form id="fDev" class="hidden" autocomplete="off" novalidate>
+      <div class="card">
+        <h2>Datos del préstamo</h2>
+        <div id="devFicha"></div>
+      </div>
+      <div class="card">
+        <h2>Recepción</h2>
+        <label>Accesorios recibidos</label>
+        <div class="checks" id="devAcc"></div>
+        <label>Estado a la devolución</label>
+        <select id="devEst" required>
+          <option value="">Seleccione…</option>
+          <option>Conforme</option><option>Con observación</option><option>Dañado</option><option>Incompleto</option><option>Extraviado</option>
+        </select>
+        <div id="devInc" class="alert wa hidden">El instrumento quedará <b>En evaluación</b> (fuera de servicio) y se notificará a la jefatura. Corresponde emitir informe dentro de 24 horas.</div>
+        <label>Observaciones <span class="opt" id="devObsHint">(opcional)</span></label>
+        <textarea id="devObs"></textarea>
+
+        <h2 style="margin-top:18px">Firma del técnico que devuelve</h2>
+        <div class="pad" id="padDev"><div class="line"></div><canvas></canvas><div class="ph">Firme aquí con el dedo</div></div>
+        <div class="padbar"><span id="padDevName"></span><button type="button" class="link" data-clear="padDev">Borrar firma</button></div>
+        <div id="devErr"></div>
+        <div style="margin-top:14px"><button class="btn" type="submit" id="devBtn">Registrar devolución</button></div>
+      </div>
+    </form>
+  </section>
+
+  <!-- Préstamos -->
+  <section id="vPrestamos" class="hidden">
+    <div class="card"><h2>En préstamo</h2><div id="lsAbiertos"></div></div>
+    <div class="card"><h2>Movimientos recientes</h2><div id="lsRecientes"></div></div>
+  </section>
+
+  <!-- Inventario -->
+  <section id="vInventario" class="hidden">
+    <div class="card">
+      <div class="row" style="align-items:center">
+        <h2 style="margin:0">Inventario</h2>
+        <button class="btn sm sec" id="btnQr" style="flex:none">Etiquetas QR</button>
+      </div>
+      <input id="invQ" placeholder="Buscar por código, instrumento o serie" style="margin-top:10px">
+      <div id="lsInv" style="margin-top:8px"></div>
+    </div>
+    <p class="muted" style="text-align:center" id="verTxt"></p>
+  </section>
+</main>
+
+<nav id="nav" class="hidden">
+  <button data-v="vEntregar" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>Entregar</button>
+  <button data-v="vDevolver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Devolver</button>
+  <button data-v="vPrestamos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg><span>Préstamos<span id="bdg"></span></span></button>
+  <button data-v="vInventario"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>Inventario</button>
+</nav>
+
+<div class="scanbox hidden" id="scan">
+  <video id="scanVid" playsinline muted></video>
+  <div class="frame"></div>
+  <div class="msg" id="scanMsg">Apunte a la etiqueta QR o código de barras</div>
+  <div class="bar">
+    <input id="scanMan" placeholder="Código manual (EM-01)">
+    <button class="btn sm" id="scanOk">OK</button>
+    <button class="btn sm sec" id="scanX">Cerrar</button>
+  </div>
+</div>
+
+<div class="sheet hidden" id="sheet">
+  <div class="tools"><button class="btn sec" id="shPrint">Imprimir / PDF</button><button class="btn sec" id="shX">Cerrar</button></div>
+  <div id="shBody"></div>
+</div>
+
+<div class="loading hidden" id="loading">Procesando…</div>
+<div class="toast hidden" id="toast"></div>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const LS = { cfg: 'hvInst.cfg', user: 'hvInst.user' };
+const ACCESORIOS = ['Puntas de prueba', 'Pinzas cocodrilo', 'Cables de medición', 'Estuche', 'Batería de repuesto', 'Cargador', 'Sonda / pinza flexible', 'Manual'];
+const VERIF = ['Enciende y la batería indica carga suficiente', 'Puntas, cables y conectores sin daño ni aislación expuesta', 'Carcasa y selector sin daño visible', 'Prueba en fuente conocida con lectura correcta'];
+const INCID = ['Dañado', 'Incompleto', 'Extraviado'];
+
+let cfg = load(LS.cfg) || {};
+let usuario = load(LS.user) || '';
+let cat = null;
+let selPrest = null;
+
+function load(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }
+function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function pad2(n) { return ('0' + n).slice(-2); }
+function fFecha(iso, hora) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return pad2(d.getDate()) + '-' + pad2(d.getMonth() + 1) + '-' + d.getFullYear() + (hora ? ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes()) : '');
+}
+function toLocalInput(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()) + 'T' + pad2(d.getHours()) + ':' + pad2(d.getMinutes()); }
+function toast(msg, err) {
+  const t = $('#toast'); t.textContent = msg; t.className = 'toast' + (err ? ' er' : '');
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.add('hidden'), err ? 6000 : 3500);
+}
+function busy(on) { $('#loading').classList.toggle('hidden', !on); }
+function show(id) {
+  $$('main>section').forEach(s => s.classList.toggle('hidden', s.id !== id));
+  $$('#nav button').forEach(b => b.classList.toggle('on', b.dataset.v === id));
+  window.scrollTo(0, 0);
+}
+
+async function api(accion, datos) {
+  const r = await fetch(cfg.api, { method: 'POST', body: JSON.stringify({ k: cfg.k, accion, datos: datos || {} }) });
+  if (!r.ok) throw new Error('El servidor respondió ' + r.status + '.');
+  const j = await r.json();
+  if (!j.ok) throw new Error(j.error || 'Error del servidor.');
+  return j.data;
+}
+
+/* ---------- Arranque ---------- */
+function leerUrl() {
+  const q = new URLSearchParams(location.search);
+  if (q.get('api') && q.get('k')) { cfg = { api: q.get('api'), k: q.get('k') }; save(LS.cfg, cfg); }
+}
+async function iniciar() {
+  leerUrl();
+  if (!cfg.api || !cfg.k) { show('vConfig'); return; }
+  busy(true);
+  try { cat = await api('catalogo'); }
+  catch (e) { busy(false); show('vConfig'); $('#cfgApi').value = cfg.api || ''; toast('No fue posible conectar: ' + e.message, true); return; }
+  busy(false);
+  $('#verTxt').textContent = 'Servidor v' + cat.version;
+  const ings = cat.personal.filter(p => p.rol === 'INGENIERO' && p.habilitado);
+  if (!usuario || !ings.find(p => p.nombre === usuario)) { pedirUsuario(); return; }
+  arrancarUI();
+}
+function pedirUsuario() {
+  const ings = cat.personal.filter(p => p.rol === 'INGENIERO' && p.habilitado);
+  $('#selUser').innerHTML = ings.length
+    ? ings.map(p => `<option ${p.nombre === usuario ? 'selected' : ''}>${esc(p.nombre)}</option>`).join('')
+    : '<option value="">No hay ingenieros habilitados en la hoja Personal</option>';
+  $('#nav').classList.add('hidden'); $('#userBar').classList.add('hidden');
+  show('vUser');
+}
+function arrancarUI() {
+  const u = cat.personal.find(p => p.nombre === usuario);
+  $('#userName').textContent = usuario + (u && u.cargo ? ' · ' + u.cargo : '');
+  $('#userBar').classList.remove('hidden');
+  $('#nav').classList.remove('hidden');
+  renderTodo();
+  show('vEntregar');
+}
+async function recargar() {
+  try { cat = await api('catalogo'); renderTodo(); } catch (e) { toast('No se pudo actualizar: ' + e.message, true); }
+}
+function renderTodo() { renderEntregar(); renderDevolver(); renderPrestamos(); renderInventario(); }
+
+/* ---------- Chips de estado ---------- */
+function chipDisp(d) {
+  const m = { 'DISPONIBLE': 'c-ok', 'EN PRÉSTAMO': 'c-inf', 'BLOQUEADO: CALIBRACIÓN': 'c-er', 'NO DISPONIBLE': 'c-er', 'COMPLETAR FICHA': 'c-wa' };
+  return `<span class="chip ${m[d] || 'c-mu'}">${esc(d)}</span>`;
+}
+function chipCal(c) {
+  const m = { 'VIGENTE': 'c-ok', 'POR VENCER': 'c-wa', 'VENCIDA': 'c-er', 'SIN DATO': 'c-mu' };
+  return `<span class="chip ${m[c] || 'c-mu'}">Calib. ${esc(c.toLowerCase())}</span>`;
+}
+
+/* ---------- Entregar ---------- */
+function renderEntregar() {
+  const actual = $('#entIns').value;
+  $('#entIns').innerHTML = '<option value="">Seleccione…</option>' + cat.instrumentos.map(i =>
+    `<option value="${esc(i.codigo)}">${esc(i.codigo)} · ${esc(i.instrumento)} — ${esc(i.disponibilidad.toLowerCase())}</option>`).join('');
+  $('#entIns').value = actual;
+  $('#entTec').innerHTML = '<option value="">Seleccione…</option>' + cat.personal.filter(p => p.rol === 'TÉCNICO' && p.habilitado)
+    .map(p => `<option>${esc(p.nombre)}</option>`).join('');
+  if (!$('#entAcc').children.length) {
+    $('#entAcc').innerHTML = ACCESORIOS.map(a => `<label><input type="checkbox" value="${esc(a)}">${esc(a)}</label>`).join('');
+    $('#entVerif').innerHTML = VERIF.map(v => `<label><input type="checkbox" required> <span>${esc(v)}</span></label>`).join('');
+  }
+  fichaEntrega();
+}
+function instSel() { return cat.instrumentos.find(i => i.codigo === $('#entIns').value); }
+function fichaEntrega() {
+  const i = instSel();
+  const box = $('#entFicha');
+  if (!i) { box.innerHTML = ''; $('#entCuerpo').classList.add('hidden'); return; }
+  let aviso = '', apto = true;
+  if (i.disponibilidad === 'EN PRÉSTAMO') { aviso = `<div class="alert er">Ya está en préstamo (${esc(i.prestamo)}). Registre primero su devolución.</div>`; apto = false; }
+  else if (i.disponibilidad === 'NO DISPONIBLE') { aviso = `<div class="alert er">Condición física: ${esc(i.condicion)}. No se puede entregar.</div>`; apto = false; }
+  else if (i.disponibilidad === 'COMPLETAR FICHA') { aviso = '<div class="alert er">La ficha no tiene condición física. Complete el inventario antes de entregar.</div>'; apto = false; }
+  else if (i.calib === 'VENCIDA' || i.calib === 'SIN DATO') { aviso = `<div class="alert wa">Calibración ${esc(i.calib.toLowerCase())}. Solo puede entregarse indicando el motivo de la excepción en la observación.</div>`; }
+  else if (i.calib === 'POR VENCER') { aviso = `<div class="alert inf">La calibración vence en ${i.diasCalib} día(s).</div>`; }
+  box.innerHTML = `<div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap">${chipDisp(i.disponibilidad)} ${chipCal(i.calib)}</div>
+    <dl class="ficha"><dt>Instrumento</dt><dd>${esc(i.instrumento)}</dd>
+    <dt>Marca / modelo</dt><dd>${esc([i.marca, i.modelo].filter(Boolean).join(' ') || '—')}</dd>
+    <dt>N° de serie</dt><dd>${esc(i.serie || '—')}</dd>
+    <dt>Categoría</dt><dd>${esc(i.categoria || '—')}</dd>
+    <dt>Vence calibración</dt><dd>${esc(fFecha(i.vencCalib) || '—')}</dd></dl>${aviso}`;
+  $('#entCuerpo').classList.toggle('hidden', !apto);
+  hintEntrega();
+}
+function hintEntrega() {
+  const i = instSel();
+  const comp = new Date($('#entComp').value);
+  const largo = cat && !isNaN(comp) && (comp - Date.now()) > cat.parametros.plazo * 864e5 + 6e4;
+  const req = $('#entEst').value !== 'Operativo' || (i && (i.calib === 'VENCIDA' || i.calib === 'SIN DATO')) || largo;
+  $('#entObsHint').textContent = req ? '(obligatoria)' : '(opcional)';
+}
+function nuevaEntrega() {
+  $('#fEnt').reset();
+  $('#entComp').value = toLocalInput(new Date(Date.now() + (cat ? cat.parametros.plazo : 1) * 864e5));
+  pads.padEnt.clear(); $('#entErr').innerHTML = '';
+  $('#entOk').classList.add('hidden'); $('#fEnt').classList.remove('hidden');
+  fichaEntrega();
+}
+async function enviarEntrega(ev) {
+  ev.preventDefault();
+  const i = instSel(); const err = $('#entErr'); err.innerHTML = '';
+  const fallas = [];
+  if (!i) fallas.push('Seleccione el instrumento.');
+  if (!$('#entTec').value) fallas.push('Seleccione el técnico receptor.');
+  if ($('#entTrab').value.trim().length < 5) fallas.push('Describa el trabajo asignado y el lugar.');
+  if ($$('#entVerif input').some(c => !c.checked)) fallas.push('Complete la verificación funcional. Si algún punto no se cumple, el instrumento no debe entregarse.');
+  if ($('#entObsHint').textContent === '(obligatoria)' && $('#entObs').value.trim().length < 10) fallas.push('La observación es obligatoria en este caso (mínimo 10 caracteres).');
+  if (!pads.padEnt.hasInk()) fallas.push('Falta la firma del técnico.');
+  if (fallas.length) { err.innerHTML = `<div class="alert er">${fallas.map(esc).join('<br>')}</div>`; return; }
+  const acc = $$('#entAcc input:checked').map(c => c.value)
+    .concat($('#entAccOtro').value.split(',').map(s => s.trim()).filter(Boolean));
+  busy(true);
+  try {
+    const r = await api('entregar', {
+      codigo: i.codigo, tecnico: $('#entTec').value, ot: $('#entOt').value.trim(), trabajo: $('#entTrab').value.trim(),
+      compromiso: new Date($('#entComp').value).toISOString(), accesorios: acc, verificacion: 'Sí',
+      estadoEntrega: $('#entEst').value, observacion: $('#entObs').value.trim(), entregadoPor: usuario, firma: pads.padEnt.png()
+    });
+    busy(false);
+    $('#fEnt').classList.add('hidden');
+    const ok = $('#entOk'); ok.classList.remove('hidden');
+    ok.innerHTML = `<div class="alert ok"><b>${esc(r.mensaje)}</b></div>
+      <div class="row"><button class="btn sec" id="okActa">Ver acta</button><button class="btn" id="okNueva">Nueva entrega</button></div>`;
+    $('#okActa').onclick = () => abrirActa(r.id);
+    $('#okNueva').onclick = nuevaEntrega;
+    window.scrollTo(0, 0);
+    recargar();
+  } catch (e) { busy(false); err.innerHTML = `<div class="alert er">${esc(e.message)}</div>`; }
+}
+
+/* ---------- Devolver ---------- */
+function renderDevolver() {
+  const actual = $('#devPre').value;
+  const ab = ordenarAbiertos(cat.abiertos);
+  $('#devPre').innerHTML = '<option value="">' + (ab.length ? 'Seleccione…' : 'No hay préstamos abiertos') + '</option>' +
+    ab.map(p => `<option value="${esc(p.id)}">${p.vencido ? '⚠ ' : ''}${esc(p.codigo)} · ${esc(p.tecnico)} · ${esc(p.id)}</option>`).join('');
+  $('#devPre').value = ab.find(p => p.id === actual) ? actual : '';
+  fichaDevolucion();
+}
+function ordenarAbiertos(a) { return a.slice().sort((x, y) => (y.vencido - x.vencido) || (new Date(x.compromiso) - new Date(y.compromiso))); }
+function fichaDevolucion() {
+  selPrest = cat.abiertos.find(p => p.id === $('#devPre').value) || null;
+  $('#fDev').classList.toggle('hidden', !selPrest);
+  if (!selPrest) return;
+  const p = selPrest;
+  $('#devFicha').innerHTML = `${p.vencido ? '<div class="alert er">Devolución vencida (comprometida ' + esc(fFecha(p.compromiso, true)) + ').</div>' : ''}
+    <dl class="ficha"><dt>Registro</dt><dd>${esc(p.id)}</dd>
+    <dt>Instrumento</dt><dd>${esc(p.codigo)} · ${esc(p.instrumento)}</dd>
+    <dt>N° de serie</dt><dd>${esc(p.serie || '—')}</dd>
+    <dt>Técnico</dt><dd>${esc(p.tecnico)}</dd>
+    <dt>Entregado</dt><dd>${esc(fFecha(p.entrega, true))}</dd>
+    <dt>Comprometida</dt><dd>${esc(fFecha(p.compromiso, true))}</dd>
+    <dt>Trabajo</dt><dd>${esc(p.trabajo)}${p.ot ? ' · ' + esc(p.ot) : ''}</dd>
+    <dt>Entregado por</dt><dd>${esc(p.entregadoPor)}</dd></dl>`;
+  const acc = String(p.accesorios || '').split(',').map(s => s.trim()).filter(Boolean);
+  $('#devAcc').innerHTML = acc.length
+    ? acc.map(a => `<label><input type="checkbox" value="${esc(a)}"> <span>${esc(a)}</span></label>`).join('')
+    : '<span class="muted">Sin accesorios registrados en la entrega.</span>';
+  $('#padDevName').textContent = p.tecnico;
+  hintDev();
+}
+function hintDev() {
+  const e = $('#devEst').value;
+  $('#devInc').classList.toggle('hidden', INCID.indexOf(e) < 0);
+  $('#devObsHint').textContent = e && e !== 'Conforme' ? '(obligatoria)' : '(opcional)';
+}
+async function enviarDevolucion(ev) {
+  ev.preventDefault();
+  const err = $('#devErr'); err.innerHTML = '';
+  const est = $('#devEst').value;
+  const completos = $$('#devAcc input').every(c => c.checked);
+  const fallas = [];
+  if (!est) fallas.push('Seleccione el estado a la devolución.');
+  if (!completos && ['Incompleto', 'Extraviado'].indexOf(est) < 0) fallas.push('Hay accesorios sin marcar: si faltan, el estado debe ser "Incompleto".');
+  if (est && est !== 'Conforme' && $('#devObs').value.trim().length < 10) fallas.push('Describa la observación (mínimo 10 caracteres).');
+  if (!pads.padDev.hasInk()) fallas.push('Falta la firma del técnico.');
+  if (fallas.length) { err.innerHTML = `<div class="alert er">${fallas.map(esc).join('<br>')}</div>`; return; }
+  busy(true);
+  try {
+    const r = await api('devolver', { id: selPrest.id, estadoDevolucion: est, accesoriosCompletos: completos,
+      observacion: $('#devObs').value.trim(), recibidoPor: usuario, firma: pads.padDev.png() });
+    busy(false);
+    $('#fDev').classList.add('hidden'); $('#devSel').classList.add('hidden');
+    const ok = $('#devOk'); ok.classList.remove('hidden');
+    ok.innerHTML = `<div class="alert ${r.incidente ? 'wa' : 'ok'}"><b>${esc(r.mensaje)}</b></div>
+      <div class="row"><button class="btn sec" id="okActa2">Ver acta</button><button class="btn" id="okNueva2">Otra devolución</button></div>`;
+    $('#okActa2').onclick = () => abrirActa(r.id);
+    $('#okNueva2').onclick = nuevaDevolucion;
+    window.scrollTo(0, 0);
+    await recargar();
+  } catch (e) { busy(false); err.innerHTML = `<div class="alert er">${esc(e.message)}</div>`; }
+}
+function nuevaDevolucion() {
+  $('#fDev').reset(); pads.padDev.clear(); $('#devErr').innerHTML = '';
+  $('#devOk').classList.add('hidden'); $('#devSel').classList.remove('hidden');
+  $('#devPre').value = ''; fichaDevolucion(); hintDev();
+}
+
+/* ---------- Listas ---------- */
+function renderPrestamos() {
+  const ab = ordenarAbiertos(cat.abiertos);
+  const venc = ab.filter(p => p.vencido).length;
+  $('#bdg').innerHTML = venc ? `<span class="badge">${venc}</span>` : '';
+  $('#lsAbiertos').innerHTML = ab.length ? ab.map(p => `<div class="item"><div>
+      <div class="t">${esc(p.codigo)} · ${esc(p.instrumento)}</div>
+      <div class="m">${esc(p.tecnico)} · ${esc(p.trabajo)}</div>
+      <div class="m">${esc(p.id)} · entregado ${esc(fFecha(p.entrega, true))}</div>
+      <div style="margin-top:4px">${p.vencido ? '<span class="chip c-er">Vencido · ' : '<span class="chip c-inf">Devolver antes de '}${esc(fFecha(p.compromiso, true))}</span></div>
+    </div><div class="acts"><button class="btn sm" data-dev="${esc(p.id)}">Devolver</button><button class="link" data-acta="${esc(p.id)}">Acta</button></div></div>`).join('')
+    : '<p class="muted">No hay instrumentos en préstamo.</p>';
+  const rec = cat.recientes.filter(p => p.estado === 'CERRADO').slice(0, 20);
+  $('#lsRecientes').innerHTML = rec.length ? rec.map(p => `<div class="item"><div>
+      <div class="t">${esc(p.codigo)} · ${esc(p.instrumento)}</div>
+      <div class="m">${esc(p.tecnico)} · ${esc(p.id)}</div>
+      <div class="m">Devuelto ${esc(fFecha(p.devolucion, true))} · <b>${esc(p.estadoDevolucion)}</b></div>
+    </div><div class="acts"><button class="link" data-acta="${esc(p.id)}">Acta</button></div></div>`).join('')
+    : '<p class="muted">Sin devoluciones registradas.</p>';
+}
+function renderInventario() {
+  const q = $('#invQ').value.trim().toLowerCase();
+  const l = cat.instrumentos.filter(i => !q || [i.codigo, i.instrumento, i.serie, i.marca, i.modelo].join(' ').toLowerCase().indexOf(q) >= 0);
+  $('#lsInv').innerHTML = l.length ? l.map(i => `<div class="item"><div>
+      <div class="t">${esc(i.codigo)} · ${esc(i.instrumento)}</div>
+      <div class="m">${esc([i.marca, i.modelo].filter(Boolean).join(' ') || 'Marca/modelo sin registrar')} · Serie ${esc(i.serie || '—')}</div>
+      <div class="m">${esc(i.categoria || 'Categoría sin registrar')}${i.vencCalib ? ' · Calibración vence ' + esc(fFecha(i.vencCalib)) : ''}</div>
+      <div style="margin-top:5px;display:flex;gap:5px;flex-wrap:wrap">${chipDisp(i.disponibilidad)} ${chipCal(i.calib)}</div>
+    </div></div>`).join('') : '<p class="muted">Sin resultados.</p>';
+}
+
+/* ---------- Acta ---------- */
+async function abrirActa(id) {
+  busy(true);
+  let a;
+  try { a = await api('acta', { id }); } catch (e) { busy(false); toast(e.message, true); return; }
+  busy(false);
+  const r = (l, v, l2, v2) => l2
+    ? `<tr><td class="l">${l}</td><td>${esc(v)}</td><td class="l">${l2}</td><td>${esc(v2)}</td></tr>`
+    : `<tr><td class="l">${l}</td><td colspan="3">${esc(v)}</td></tr>`;
+  const det = a.instrumentoDet || {};
+  const firma = (img, rol, nombre) => `<div>${img ? `<img src="${img}" alt="Firma">` : '<div class="sp"></div>'}<div class="ln"></div><b>${rol}</b><br>${esc(nombre || 'Nombre, RUT y firma')}</div>`;
+  const cerrado = a.estado === 'CERRADO';
+  $('#shBody').innerHTML = `<div class="doc">
+    <div class="h1">SERVICIO DE SALUD ARAUCANÍA SUR · HOSPITAL DE VILLARRICA</div>
+    <div class="h2">Unidad de Operaciones e Infraestructura · Área Eléctrica</div>
+    <div class="tt">ACTA DE ENTREGA Y DEVOLUCIÓN DE INSTRUMENTO DE MEDICIÓN</div>
+    <div class="cod">Código: ACT-ELE-EM-001 · Versión: 01 · N° de registro: <b>${esc(a.id)}</b></div>
+    <div class="sec">I. IDENTIFICACIÓN DEL INSTRUMENTO</div>
+    <table>${r('Código', a.codigo, 'N° de serie', a.serie || '—')}${r('Instrumento', a.instrumento)}
+      ${r('Marca / modelo', [det.marca, det.modelo].filter(Boolean).join(' ') || '—', 'Categoría', det.categoria || '—')}
+      ${r('Calibración a la entrega', a.calibracion)}</table>
+    <div class="sec">II. ENTREGA</div>
+    <table>${r('Fecha y hora', fFecha(a.entrega, true), 'Devolución comprometida', fFecha(a.compromiso, true))}
+      ${r('Técnico receptor', a.tecnico + (a.tecnicoRut ? ' · RUT ' + a.tecnicoRut : ''))}
+      ${r('OT / N° tarea', a.ot || '—', 'Estado a la entrega', a.estadoEntrega)}
+      ${r('Trabajo asignado y lugar', a.trabajo)}${r('Accesorios', a.accesorios || '—')}
+      ${r('Verificación funcional', a.verificacion, 'Entregado por', a.entregadoPor)}
+      ${a.obsEntrega ? r('Observación', a.obsEntrega) : ''}</table>
+    <div class="decl2"><b>DECLARACIÓN DEL TÉCNICO RECEPTOR:</b> Declaro recibir el instrumento individualizado en las condiciones indicadas, habiendo verificado su funcionamiento y el estado de puntas, cables y accesorios. Me comprometo a: (1) utilizarlo exclusivamente en el trabajo asignado; (2) no exceder la categoría de medición ni los rangos nominales del instrumento (IEC 61010-1); (3) verificar ausencia de tensión con comprobador probado antes y después de cada uso; (4) usar el EPP correspondiente al nivel de riesgo eléctrico; (5) informar de inmediato cualquier falla, daño o pérdida al ingeniero responsable; y (6) devolverlo en la fecha comprometida o al término del trabajo, lo que ocurra primero.</div>
+    <div class="firmas">${firma('', 'ENTREGA: Ingeniero responsable', a.entregadoPor)}${firma(a.firmaEntregaImg, 'RECIBE: Técnico eléctrico', a.tecnico)}</div>
+    <div class="sec">III. DEVOLUCIÓN</div>
+    <table>${cerrado
+      ? r('Fecha y hora', fFecha(a.devolucion, true), 'Estado a la devolución', a.estadoDevolucion) +
+        r('Accesorios completos', a.accesoriosCompletos, 'Recibido por', a.recibidoPor) +
+        r('Observaciones', a.obsDevolucion || '—')
+      : r('Estado', 'Préstamo abierto: devolución pendiente')}</table>
+    <div class="firmas">${firma(a.firmaDevolucionImg, 'DEVUELVE: Técnico eléctrico', cerrado ? a.tecnico : '')}${firma('', 'RECIBE: Ingeniero responsable', cerrado ? a.recibidoPor : '')}</div>
+    <div class="pie">Firma del técnico capturada electrónicamente en la app de registro; el ingeniero queda identificado por su usuario. Si el estado a la devolución es Dañado, Incompleto o Extraviado, el instrumento queda En evaluación y corresponde informe a la Jefatura de Operaciones e Infraestructura dentro de 24 horas.</div>
+  </div>`;
+  $('#sheet').classList.remove('hidden');
+}
+
+/* ---------- Etiquetas QR ---------- */
+function cargarScript(src) {
+  return new Promise((ok, ko) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = () => ko(new Error('No se pudo cargar ' + src)); document.head.appendChild(s); });
+}
+async function etiquetas() {
+  busy(true);
+  try { if (!window.QRCode) await cargarScript('https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'); }
+  catch (e) { busy(false); toast(e.message, true); return; }
+  busy(false);
+  $('#shBody').innerHTML = '<div class="labels">' + cat.instrumentos.map((i, n) =>
+    `<div class="lbl"><span>Hospital de Villarrica · Área Eléctrica</span><div class="qr" id="qr${n}"></div><b>${esc(i.codigo)}</b><span>${esc(i.instrumento)}</span><span>Serie ${esc(i.serie || '—')}</span></div>`).join('') + '</div>';
+  cat.instrumentos.forEach((i, n) => new QRCode(document.getElementById('qr' + n), { text: i.codigo, width: 110, height: 110, correctLevel: QRCode.CorrectLevel.M }));
+  $('#sheet').classList.remove('hidden');
+}
+
+/* ---------- Escáner ---------- */
+const scanner = { stream: null, timer: null, det: null, cb: null };
+async function detector() {
+  if (scanner.det) return scanner.det;
+  const formatos = ['qr_code', 'code_128', 'code_39', 'data_matrix', 'ean_13'];
+  if ('BarcodeDetector' in window) {
+    try {
+      const sop = await window.BarcodeDetector.getSupportedFormats();
+      const f = formatos.filter(x => sop.indexOf(x) >= 0);
+      if (f.length) return (scanner.det = new window.BarcodeDetector({ formats: f }));
+    } catch (e) {}
+  }
+  await cargarScript('https://cdn.jsdelivr.net/npm/barcode-detector@2.3.1/dist/iife/pure.js');
+  return (scanner.det = new window.BarcodeDetectionAPI.BarcodeDetector({ formats: formatos }));
+}
+async function abrirScan(cb) {
+  scanner.cb = cb;
+  $('#scanMan').value = ''; $('#scanMsg').textContent = 'Apunte a la etiqueta QR o código de barras';
+  $('#scan').classList.remove('hidden');
+  try {
+    const det = await detector();
+    scanner.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+    const v = $('#scanVid'); v.srcObject = scanner.stream; await v.play();
+    const ciclo = async () => {
+      if (!scanner.stream) return;
+      try {
+        const r = await det.detect(v);
+        if (r && r.length) { if (navigator.vibrate) navigator.vibrate(80); return resolverScan(r[0].rawValue); }
+      } catch (e) {}
+      scanner.timer = setTimeout(ciclo, 220);
+    };
+    ciclo();
+  } catch (e) {
+    $('#scanMsg').textContent = 'Cámara no disponible: ingrese el código manualmente.';
+  }
+}
+function cerrarScan() {
+  clearTimeout(scanner.timer);
+  if (scanner.stream) scanner.stream.getTracks().forEach(t => t.stop());
+  scanner.stream = null; $('#scan').classList.add('hidden');
+}
+function resolverScan(valor) {
+  const v = String(valor || '').trim().toUpperCase();
+  if (!v) return;
+  const i = cat.instrumentos.find(x => x.codigo === v) || cat.instrumentos.find(x => x.serie && x.serie.toUpperCase() === v);
+  cerrarScan();
+  if (!i) { toast('El código «' + v + '» no está en el inventario.', true); return; }
+  scanner.cb(i);
+}
+
+/* ---------- Firma ---------- */
+function crearPad(id) {
+  const box = document.getElementById(id), cv = box.querySelector('canvas'), ctx = cv.getContext('2d');
+  let ink = false, dib = false, last = null;
+  function ajustar() {
+    const r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+    if (!r.width) return;
+    const prev = ink ? cv.toDataURL() : null;
+    cv.width = r.width * dpr; cv.height = r.height * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.lineWidth = 2.2; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#0b2a4a';
+    if (prev) { const im = new Image(); im.onload = () => ctx.drawImage(im, 0, 0, r.width, r.height); im.src = prev; }
+  }
+  const pos = e => { const r = cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+  cv.addEventListener('pointerdown', e => { if (!cv.width) ajustar(); dib = true; last = pos(e); cv.setPointerCapture(e.pointerId); e.preventDefault(); });
+  cv.addEventListener('pointermove', e => {
+    if (!dib) return; const p = pos(e);
+    ctx.beginPath(); ctx.moveTo(last.x, last.y); ctx.lineTo(p.x, p.y); ctx.stroke(); last = p;
+    if (!ink) { ink = true; box.querySelector('.ph').classList.add('hidden'); }
+    e.preventDefault();
+  });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => cv.addEventListener(t, () => { dib = false; }));
+  window.addEventListener('resize', ajustar);
+  new ResizeObserver(ajustar).observe(box);
+  return {
+    hasInk: () => ink,
+    clear() { ctx.clearRect(0, 0, cv.width, cv.height); ink = false; box.querySelector('.ph').classList.remove('hidden'); },
+    png() {
+      const o = document.createElement('canvas'); o.width = 600; o.height = Math.round(600 * cv.height / cv.width) || 200;
+      const c = o.getContext('2d'); c.fillStyle = '#fff'; c.fillRect(0, 0, o.width, o.height);
+      c.drawImage(cv, 0, 0, o.width, o.height);
+      return o.toDataURL('image/png');
+    }
+  };
+}
+const pads = { padEnt: crearPad('padEnt'), padDev: crearPad('padDev') };
+
+/* ---------- Eventos ---------- */
+$('#btnCfg').onclick = () => {
+  const api = $('#cfgApi').value.trim(), k = $('#cfgK').value.trim();
+  if (!/^https:\/\/script\.google\.com\//.test(api) || !k) { toast('Ingrese una URL de Apps Script válida y la clave.', true); return; }
+  cfg = { api, k }; save(LS.cfg, cfg); iniciar();
+};
+$('#btnSetUser').onclick = () => { const v = $('#selUser').value; if (!v) return; usuario = v; save(LS.user, v); arrancarUI(); };
+$('#btnUser').onclick = pedirUsuario;
+$$('#nav button').forEach(b => b.onclick = () => { show(b.dataset.v); if (b.dataset.v !== 'vEntregar') recargar(); });
+$('#entIns').onchange = fichaEntrega;
+$('#entTec').onchange = () => { $('#padEntName').textContent = $('#entTec').value; };
+$('#entEst').onchange = hintEntrega;
+$('#entComp').onchange = hintEntrega;
+$('#fEnt').addEventListener('submit', enviarEntrega);
+$('#entScan').onclick = () => abrirScan(i => { $('#entIns').value = i.codigo; fichaEntrega(); });
+$('#devPre').onchange = fichaDevolucion;
+$('#devEst').onchange = hintDev;
+$('#fDev').addEventListener('submit', enviarDevolucion);
+$('#devScan').onclick = () => abrirScan(i => {
+  const p = cat.abiertos.find(x => x.codigo === i.codigo);
+  if (!p) { toast(i.codigo + ' no tiene un préstamo abierto.', true); return; }
+  $('#devPre').value = p.id; fichaDevolucion();
+});
+$$('[data-clear]').forEach(b => b.onclick = () => pads[b.dataset.clear].clear());
+document.addEventListener('click', e => {
+  const d = e.target.closest('[data-dev]'), a = e.target.closest('[data-acta]');
+  if (d) { show('vDevolver'); nuevaDevolucion(); $('#devPre').value = d.dataset.dev; fichaDevolucion(); }
+  if (a) abrirActa(a.dataset.acta);
+});
+$('#invQ').oninput = renderInventario;
+$('#btnQr').onclick = etiquetas;
+$('#scanX').onclick = cerrarScan;
+$('#scanOk').onclick = () => resolverScan($('#scanMan').value);
+$('#scanMan').onkeydown = e => { if (e.key === 'Enter') resolverScan($('#scanMan').value); };
+$('#shX').onclick = () => $('#sheet').classList.add('hidden');
+$('#shPrint').onclick = () => window.print();
+
+$('#entComp').value = toLocalInput(new Date(Date.now() + 864e5));
+iniciar();
+})();
+</script>
+</body>
+</html>
 
