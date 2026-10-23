@@ -62,7 +62,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--az2);outline-off
 .hidden{display:none!important}
 .scanbox{position:fixed;inset:0;background:#000;z-index:50;display:flex;flex-direction:column}
 .scanbox video{flex:1;width:100%;object-fit:cover;min-height:0}
-.scanbox .frame{position:absolute;top:50%;left:50%;width:min(70vw,300px);height:min(70vw,300px);transform:translate(-50%,-62%);border:3px solid rgba(255,255,255,.85);border-radius:18px;box-shadow:0 0 0 2000px rgba(0,0,0,.35)}
+.scanbox .frame{position:absolute;top:50%;left:50%;width:min(84vw,460px);height:min(42vw,230px);transform:translate(-50%,-62%);transition:border-color .15s;border:3px solid rgba(255,255,255,.85);border-radius:18px;box-shadow:0 0 0 2000px rgba(0,0,0,.35)}
 .scanbox .bar{background:#111;padding:12px 16px calc(12px + env(safe-area-inset-bottom));display:flex;gap:8px}
 .scanbox .bar input{background:#222;color:#fff;border-color:#333}
 .scanbox .msg{position:absolute;top:16px;left:0;right:0;text-align:center;color:#fff;font-size:14px;text-shadow:0 1px 3px #000}
@@ -258,7 +258,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--az2);outline-off
   <div class="frame" id="scanFrame"></div>
   <div class="msg" id="scanMsg">Apunte a la etiqueta QR o código de barras</div>
   <div class="bar">
-    <input id="scanMan" placeholder="Código manual (EM-01)">
+    <input id="scanMan" placeholder="Código o N° inventario">
     <button class="btn sm" id="scanOk">OK</button>
     <label class="btn sm sec" style="margin:0">Foto<input type="file" accept="image/*" capture="environment" id="scanFoto" hidden></label>
     <button class="btn sm sec" id="scanX">Cerrar</button>
@@ -394,6 +394,7 @@ function fichaEntrega() {
     <dl class="ficha"><dt>Instrumento</dt><dd>${esc(i.instrumento)}</dd>
     <dt>Marca / modelo</dt><dd>${esc([i.marca, i.modelo].filter(Boolean).join(' ') || '—')}</dd>
     <dt>N° de serie</dt><dd>${esc(i.serie || '—')}</dd>
+    <dt>N° inventario</dt><dd>${esc(i.inventario || '—')}</dd>
     <dt>Categoría</dt><dd>${esc(i.categoria || '—')}</dd>
     <dt>Vence calibración</dt><dd>${esc(fFecha(i.vencCalib) || '—')}</dd></dl>${aviso}`;
   $('#entCuerpo').classList.toggle('hidden', !apto);
@@ -535,10 +536,10 @@ function renderPrestamos() {
 }
 function renderInventario() {
   const q = $('#invQ').value.trim().toLowerCase();
-  const l = cat.instrumentos.filter(i => !q || [i.codigo, i.instrumento, i.serie, i.marca, i.modelo].join(' ').toLowerCase().indexOf(q) >= 0);
+  const l = cat.instrumentos.filter(i => !q || [i.codigo, i.instrumento, i.serie, i.marca, i.modelo, i.inventario].join(' ').toLowerCase().indexOf(q) >= 0);
   $('#lsInv').innerHTML = l.length ? l.map(i => `<div class="item"><div>
       <div class="t">${esc(i.codigo)} · ${esc(i.instrumento)}</div>
-      <div class="m">${esc([i.marca, i.modelo].filter(Boolean).join(' ') || 'Marca/modelo sin registrar')} · Serie ${esc(i.serie || '—')}</div>
+      <div class="m">${esc([i.marca, i.modelo].filter(Boolean).join(' ') || 'Marca/modelo sin registrar')} · Serie ${esc(i.serie || '—')}${i.inventario ? ' · Inv. ' + esc(i.inventario) : ''}</div>
       <div class="m">${esc(i.categoria || 'Categoría sin registrar')}${i.vencCalib ? ' · Calibración vence ' + esc(fFecha(i.vencCalib)) : ''}</div>
       <div style="margin-top:5px;display:flex;gap:5px;flex-wrap:wrap">${chipDisp(i.disponibilidad)} ${chipCal(i.calib)}</div>
     </div></div>`).join('') : '<p class="muted">Sin resultados.</p>';
@@ -617,8 +618,23 @@ async function detector() {
   return scanner.det;
 }
 function normCod(t) { return String(t || '').trim().toUpperCase().replace(/\s+/g, ''); }
+// Variantes para comparar etiquetas: tal cual, sin ceros a la izquierda y, si trae prefijo con guion
+// (121121-011301), solo el último tramo. Así «0000011301» coincide con «121121-011301» o «11301».
+function variantes(t) {
+  const c = normCod(t); if (!c) return [];
+  const sinCeros = x => x.replace(/^0+(?=\d)/, '');
+  const ult = c.split('-').pop();
+  return [c, sinCeros(c), ult, sinCeros(ult)].filter(x => x.length >= 4);
+}
+function coincide(leido, campo) {
+  if (!campo) return false;
+  const a = variantes(leido), b = variantes(campo);
+  return a.some(x => b.indexOf(x) >= 0);
+}
 function buscarInstrumento(c) {
-  return cat.instrumentos.find(x => normCod(x.codigo) === c) || cat.instrumentos.find(x => x.serie && normCod(x.serie) === c);
+  return cat.instrumentos.find(x => normCod(x.codigo) === c)
+    || cat.instrumentos.find(x => coincide(c, x.inventario))
+    || cat.instrumentos.find(x => coincide(c, x.serie));
 }
 function beep() {
   try {
@@ -648,16 +664,19 @@ async function abrirScan(cb) {
     const det = await detector();
     if (!det) { $('#scanMsg').textContent = 'No se cargó el lector. Verifique conexión y recargue, o use Foto / ingreso manual.'; return; }
     const st = track.getSettings ? track.getSettings() : {};
-    $('#scanMsg').textContent = 'Apunte el código al recuadro' + (st.width ? ' · cámara ' + st.width + '×' + st.height : '');
+    $('#scanMsg').textContent = 'Centre la etiqueta en el recuadro, a 10–15 cm' + (st.width ? ' · cámara ' + st.width + '×' + st.height : '');
+    // Alterna el cuadro completo (QR y códigos grandes) con un recorte ampliado del centro
+    // (etiquetas de inventario con código de barras pequeño rodeado de texto).
+    let n = 0;
     const paso = async () => {
       if (!scanner.on) return;
       try {
         if (v.readyState >= 2 && v.videoWidth) {
-          const r = await det.detect(v);
+          const r = await det.detect(n++ % 2 ? recorteCentral(v) : v);
           if (r && r.length) lecturaScan(r[0].rawValue);
         }
       } catch (e) {}
-      if (scanner.on) scanner.timer = setTimeout(paso, 150);
+      if (scanner.on) scanner.timer = setTimeout(paso, 120);
     };
     paso();
   } catch (e) {
@@ -667,6 +686,17 @@ async function abrirScan(cb) {
       : n === 'NotReadableError' ? 'La cámara está en uso por otra aplicación.'
       : 'No se pudo abrir la cámara. Use Foto o el ingreso manual.';
   }
+}
+function recorteCentral(v) {
+  const w = v.videoWidth, h = v.videoHeight;
+  const cw = Math.round(w * (w >= h ? 0.7 : 0.9)), ch = Math.round(h * (w >= h ? 0.5 : 0.35));
+  const k = Math.min(2, 1600 / cw);
+  const cv = scanner.cv || (scanner.cv = document.createElement('canvas'));
+  cv.width = Math.round(cw * k); cv.height = Math.round(ch * k);
+  const ctx = cv.getContext('2d', { willReadFrequently: true });
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(v, (w - cw) / 2, (h - ch) / 2, cw, ch, 0, 0, cv.width, cv.height);
+  return cv;
 }
 function cerrarScan() {
   scanner.on = false; clearTimeout(scanner.timer);
@@ -703,7 +733,19 @@ function leerFoto(input) {
     cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
     URL.revokeObjectURL(url);
     let t = null;
-    try { const det = await detector(); if (det) { const r = await det.detect(cv); if (r && r.length) t = r[0].rawValue; } } catch (e) {}
+    try {
+      const det = await detector();
+      if (det) {
+        let r = await det.detect(cv);
+        if (!(r && r.length)) {
+          const c2 = document.createElement('canvas'), w = cv.width, h = cv.height;
+          const cw = Math.round(w * 0.8), ch = Math.round(h * 0.5);
+          c2.width = cw; c2.height = ch; c2.getContext('2d').drawImage(cv, (w - cw) / 2, (h - ch) / 2, cw, ch, 0, 0, cw, ch);
+          r = await det.detect(c2);
+        }
+        if (r && r.length) t = r[0].rawValue;
+      }
+    } catch (e) {}
     if (t) resolverScan(t);
     else $('#scanMsg').textContent = 'No se detectó un código en la foto. Acérquese y evite reflejos.';
   };
